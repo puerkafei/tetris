@@ -9,7 +9,7 @@
   body {
     background: #0f0f23;
     color: #fff;
-    font-family: 'Arial', sans-serif;
+    font-family: "Arial", sans-serif;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -64,11 +64,12 @@
     background: #2a2a4e;
     border: 1px solid #4a4a6a;
     border-radius: 8px;
-    padding: 8px 16px;
-    font-size: 13px;
+    padding: 12px 20px;
+    font-size: 18px;
     color: #ccc;
     cursor: pointer;
     touch-action: manipulation;
+    min-width: 50px;
   }
   .controls-info .btn:active {
     background: #3a3a5e;
@@ -93,7 +94,7 @@
 
   <script src="wasm_exec.js"></script>
   <script>
-    const loadingEl = document.getElementById('loading');
+    const loadingEl = document.getElementById("loading");
 
     if (!WebAssembly.instantiateStreaming) {
       WebAssembly.instantiateStreaming = async (resp, importObject) => {
@@ -103,33 +104,25 @@
     }
 
     const go = new Go();
-    WebAssembly.instantiateStreaming(fetch('tetris.wasm'), go.importObject)
+    WebAssembly.instantiateStreaming(fetch("tetris.wasm"), go.importObject)
       .then(result => {
-        loadingEl.style.display = 'none';
+        loadingEl.style.display = "none";
         go.run(result.instance);
 
-        // Button controls
+        // Wait for WASM to set up, then bind buttons to dispatch on DOCUMENT (not window)
         setTimeout(() => {
-          const canvas = document.getElementById('gameCanvas');
-          document.getElementById('btnLeft').addEventListener('click', () => {
-            window.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowLeft'}));
-          });
-          document.getElementById('btnRight').addEventListener('click', () => {
-            window.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowRight'}));
-          });
-          document.getElementById('btnRotate').addEventListener('click', () => {
-            window.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowUp'}));
-          });
-          document.getElementById('btnDown').addEventListener('click', () => {
-            window.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowDown'}));
-          });
-          document.getElementById('btnDrop').addEventListener('click', () => {
-            window.dispatchEvent(new KeyboardEvent('keydown', {key: ' '}));
-          });
+          function dispatchKey(key) {
+            document.dispatchEvent(new KeyboardEvent("keydown", {key: key, bubbles: true}));
+          }
+          document.getElementById("btnLeft").addEventListener("click", () => dispatchKey("ArrowLeft"));
+          document.getElementById("btnRight").addEventListener("click", () => dispatchKey("ArrowRight"));
+          document.getElementById("btnRotate").addEventListener("click", () => dispatchKey("ArrowUp"));
+          document.getElementById("btnDown").addEventListener("click", () => dispatchKey("ArrowDown"));
+          document.getElementById("btnDrop").addEventListener("click", () => dispatchKey(" "));
         }, 500);
       })
       .catch(err => {
-        loadingEl.innerHTML = '<p style="color:#f00;">加载失败: ' + err.message + '</p>';
+        loadingEl.innerHTML = "<p style=\"color:#f00;\">加载失败: " + err.message + "</p>";
         console.error(err);
       });
   </script>
